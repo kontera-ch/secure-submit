@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@700&display=swap');
+@import '_variables';
+@import 'bootstrap/scss/bootstrap';
+
+#app {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.brand {
+  text-transform: lowercase;
+  font-family: $font-family-brand;
+  font-weight: 700;
+}

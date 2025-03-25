@@ -1,0 +1,36 @@
+{
+  "name": "kontera-verify",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vite",
+    "build": "vite build",
+    "test": "jest",
+    "lint": "eslint --ext .ts,vue --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "bootstrap": "^5.1.3",
+    "openpgp": "^6.1.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@esbuild-plugins/node-modules-polyfill": "^0.1.4",
+    "@rollup/plugin-inject": "^4.0.4",
+    "@types/jest": "^27.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "@vitejs/plugin-vue": "^2.2.0",
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "@vue/eslint-config-typescript": "^10.0.0",
+    "@vue/test-utils": "^2.0.0-0",
+    "@vue/vue3-jest": "v27.0.0-alpha.4",
+    "prettier": "^2.4.1",
+    "sass": "^1.32.7",
+    "ts-jest": "^27.1.3",
+    "typescript": "~4.5.5",
+    "vite": "^2.8.3",
+    "vue-tsc": "^0.31.4"
+  }
+}
