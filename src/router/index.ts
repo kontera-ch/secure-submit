@@ -3,7 +3,7 @@ import Encrypt from '../views/Encrypt.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
+    path: '',
     name: 'encrypt',
     props: (route) => ({
       publicKey: route.query.publicKey
