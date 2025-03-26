@@ -5,6 +5,9 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'encrypt',
+    props: (route) => ({
+      publicKey: route.query.publicKey
+    }),
     component: Encrypt
   }
 ];

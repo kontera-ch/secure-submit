@@ -1,7 +1,16 @@
 <template>
   <div class="pt-10">
-    <div>
-      <h3>👋</h3>
+    <div class="alert alert-warning" v-if="error">Fehler: {{ error }}</div>
+    <div v-else>
+      <div class="alert alert-danger" v-if="isDefaultPublicKey">
+        Es wurde kein Public Key mittels Query-Parameter übergeben. Standard Schlüssel wird verwendet.<br />
+      </div>
+
+      <div class="alert alert-success" v-if="readPublicKey">
+        Public Key Fingerprint: <code>{{ readPublicKey?.getFingerprint() }}</code>
+      </div>
+
+      <h3 class="mt-10 mb-6">👋</h3>
 
       <p>
         Du wurdest vom Kontera Team dazu gebeten, ein Passwort, ein API-Key oder einen geheimen Schlüssel zu verschlüsseln. Bitte gib den Text ein, der verschlüsselt werden soll.
@@ -20,16 +29,16 @@
 
       <hr class="mt-10" />
 
-      <a @click="showDecryptionZone = true">Entschlüsseln via PGP Private Key</a>
+      <button class="btn btn-sm btn-light" @click="showDecryptionZone = true">Entschlüsseln via PGP Private Key</button>
 
-      <div v-if="showDecryptionZone">
+      <div class="pt-4" v-if="showDecryptionZone">
         <label for="file">Encrypted Message</label>
         <textarea class="form-control" v-model="messageToDecrypt" type="text" />
 
         <label for="file">PGP Private Key</label>
         <textarea class="form-control" v-model="pgpPrivateKey" type="text" />
 
-        <div class="my-4">
+        <div class="mt-4">
           <button class="btn btn-success text-white" @click="decryptSecret">🔓 Entschlüsseln</button>
         </div>
 
@@ -42,8 +51,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { readKey, createMessage, encrypt, decrypt, readMessage, decryptKey, readPrivateKey } from 'openpgp';
+import { computed, defineComponent, onMounted, PropType, ref } from 'vue';
+import { readKey, createMessage, encrypt, decrypt, readMessage, readPrivateKey, Key } from 'openpgp';
 
 // put keys in backtick (``) to avoid errors caused by spaces or tabs
 const publicKeyArmored = `-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -103,8 +112,15 @@ eqzgK4XsLxrAKv4=
 `;
 
 export default defineComponent({
-  setup() {
-    const showDecryptionZone = ref(false)
+  props: {
+    publicKey: {
+      default: publicKeyArmored,
+      type: String as PropType<string>
+    }
+  },
+
+  setup(props) {
+    const showDecryptionZone = ref(false);
     const message = ref('');
     const messageEncrypted = ref('');
 
@@ -112,19 +128,38 @@ export default defineComponent({
     const messageToDecrypt = ref('');
     const decryptedMessage = ref('');
 
+    const readPublicKey = ref<Key | null>();
+    const defaultPublicKey = ref<Key | null>();
+    const error = ref<string | null>(null);
+
+    onMounted(async () => {
+      try {
+        defaultPublicKey.value = await readKey({ armoredKey: publicKeyArmored });
+        const decodedPublicKey = atob(props.publicKey.replace(/_/g, '/').replace(/-/g, '+'));
+        readPublicKey.value = await readKey({ armoredKey: decodedPublicKey });
+      } catch (err) {
+        error.value = String(err);
+      }
+    });
+
     const encryptSecret = async () => {
-      const publicKey = await readKey({ armoredKey: publicKeyArmored });
+      if (!readPublicKey.value) {
+        return;
+      }
 
       const encrypted = await encrypt({
         message: await createMessage({ text: message.value }), // input as Message object
-        encryptionKeys: publicKey
+        encryptionKeys: readPublicKey.value
       });
 
       messageEncrypted.value = encrypted;
     };
 
     const decryptSecret = async () => {
-      const publicKey = await readKey({ armoredKey: publicKeyArmored });
+      if (!readPublicKey.value) {
+        return;
+      }
+
       const privateKey = await readPrivateKey({ armoredKey: pgpPrivateKey.value });
 
       const message = await readMessage({
@@ -133,14 +168,23 @@ export default defineComponent({
 
       const { data: decrypted } = await decrypt({
         message,
-        verificationKeys: publicKey,
+        verificationKeys: readPublicKey.value,
         decryptionKeys: privateKey
       });
 
       decryptedMessage.value = decrypted;
     };
 
+    const isDefaultPublicKey = computed(() => {
+      return readPublicKey.value?.getFingerprint() === defaultPublicKey.value?.getFingerprint();
+    });
+
     return {
+      error,
+
+      readPublicKey,
+      isDefaultPublicKey,
+
       showDecryptionZone,
       decryptedMessage,
       message,
