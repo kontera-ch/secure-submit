@@ -3,11 +3,13 @@
     <div class="alert alert-warning" v-if="error">Fehler: {{ error }}</div>
     <div class="pt-10">
       <div class="alert alert-danger" v-if="isDefaultPublicKey">
-        Es wurde kein Public Key mittels Query-Parameter übergeben. Standard Schlüssel wird verwendet.<br />
+        Es wurde kein Public Key mittels Query-Parameter übergeben. Standard Schlüssel wird verwendet.
+        <br />
       </div>
 
       <div class="alert alert-success" v-if="readPublicKey">
-        Public Key Fingerprint: <code>{{ readPublicKey?.getFingerprint() }}</code>
+        Public Key Fingerprint:
+        <code>{{ readPublicKey?.getFingerprint() }}</code>
       </div>
 
       <h3 class="mb-6">👋</h3>
@@ -51,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, PropType, ref } from 'vue';
+import { defineComponent, onMounted, PropType, ref } from 'vue';
 import { readKey, createMessage, encrypt, decrypt, readMessage, readPrivateKey, Key } from 'openpgp';
 
 // put keys in backtick (``) to avoid errors caused by spaces or tabs
@@ -114,7 +116,6 @@ eqzgK4XsLxrAKv4=
 export default defineComponent({
   props: {
     publicKey: {
-      default: publicKeyArmored,
       type: String as PropType<string>
     }
   },
@@ -123,20 +124,24 @@ export default defineComponent({
     const showDecryptionZone = ref(false);
     const message = ref('');
     const messageEncrypted = ref('');
+    const isDefaultPublicKey = ref(false);
 
     const pgpPrivateKey = ref('');
     const messageToDecrypt = ref('');
     const decryptedMessage = ref('');
 
     const readPublicKey = ref<Key | null>();
-    const defaultPublicKey = ref<Key | null>();
     const error = ref<string | null>(null);
 
     onMounted(async () => {
       try {
-        defaultPublicKey.value = await readKey({ armoredKey: publicKeyArmored });
-        const decodedPublicKey = atob(props.publicKey.replace(/_/g, '/').replace(/-/g, '+'));
-        readPublicKey.value = await readKey({ armoredKey: decodedPublicKey });
+        if (props.publicKey) {
+          const decodedPublicKey = atob(props.publicKey.replace(/_/g, '/').replace(/-/g, '+'));
+          readPublicKey.value = await readKey({ armoredKey: decodedPublicKey });
+        } else {
+          readPublicKey.value = await readKey({ armoredKey: publicKeyArmored });
+          isDefaultPublicKey.value = true;
+        }
       } catch (err) {
         error.value = String(err);
       }
@@ -174,10 +179,6 @@ export default defineComponent({
 
       decryptedMessage.value = decrypted;
     };
-
-    const isDefaultPublicKey = computed(() => {
-      return readPublicKey.value?.getFingerprint() === defaultPublicKey.value?.getFingerprint();
-    });
 
     return {
       error,
