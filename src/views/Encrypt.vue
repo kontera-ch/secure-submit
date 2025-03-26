@@ -1,7 +1,7 @@
 <template>
-  <div class="pt-10">
+  <div>
     <div class="alert alert-warning" v-if="error">Fehler: {{ error }}</div>
-    <div v-else>
+    <div class="pt-10">
       <div class="alert alert-danger" v-if="isDefaultPublicKey">
         Es wurde kein Public Key mittels Query-Parameter übergeben. Standard Schlüssel wird verwendet.<br />
       </div>
@@ -10,7 +10,7 @@
         Public Key Fingerprint: <code>{{ readPublicKey?.getFingerprint() }}</code>
       </div>
 
-      <h3 class="mt-10 mb-6">👋</h3>
+      <h3 class="mb-6">👋</h3>
 
       <p>
         Du wurdest vom Kontera Team dazu gebeten, ein Passwort, ein API-Key oder einen geheimen Schlüssel zu verschlüsseln. Bitte gib den Text ein, der verschlüsselt werden soll.
